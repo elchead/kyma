@@ -1,10 +1,10 @@
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMRule
 metadata:
-  name: example-vmalert
+  name: {{ include "runtime-monitoring-integration.fullname" . }}-example
 spec:
   groups:
-    - name: node-exporter.rules
+    - name: {{ include "runtime-monitoring-integration.fullname" . }}-node-exporter.rules
       rules:
         - expr: |
             count without (cpu) (
@@ -32,7 +32,7 @@ spec:
               node_memory_MemTotal_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
             )
           record: instance:node_memory_utilisation:ratio
-    - name: kubernetes-apps
+    - name: {{ include "runtime-monitoring-integration.fullname" . }}-kubernetes-apps
       rules:
         - alert: KubePodCrashLooping
           annotations:
@@ -56,7 +56,7 @@ spec:
           for: 15m
           labels:
             severity: critical
-    - name: kubernetes-storage
+    - name: {{ include "runtime-monitoring-integration.fullname" . }}-kubernetes-storage
       rules:
         - alert: KubePersistentVolumeFillingUp
           annotations:
@@ -102,7 +102,7 @@ spec:
           for: 5m
           labels:
             severity: critical
-    - name: kubernetes-resources
+    - name: {{ include "runtime-monitoring-integration.fullname" . }}-kubernetes-resources
       rules:
         - alert: KubeCPUOvercommit
           annotations:
@@ -189,7 +189,7 @@ spec:
           for: 15m
           labels:
             severity: warning
-    - name: kubernetes-system-apiserver
+    - name: {{ include "runtime-monitoring-integration.fullname" . }}-kubernetes-system-apiserver
       rules:
         - alert: KubeAPILatencyHigh
           annotations:
