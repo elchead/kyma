@@ -4,46 +4,18 @@ metadata:
   name: {{ include "runtime-monitoring-integration.fullname" . }}-example
 spec:
   groups:
-    # - name: {{ include "runtime-monitoring-integration.fullname" . }}-node-exporter.rules
-    #   rules:
-    #     - expr: |
-    #         count without (cpu) (
-    #           count without (mode) (
-    #             node_cpu_seconds_total{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
-    #           )
-    #         )
-    #       record: instance:node_num_cpu:sum
-    #     - expr: |
-    #         1 - avg without (cpu, mode) (
-    #           rate(node_cpu_seconds_total{job="node-exporter", mode="idle", instance_id="{{ .Values.runtime.instanceID }}"}[1m])
-    #         )
-    #       record: instance:node_cpu_utilisation:rate1m
-    #     - expr: |
-    #         (
-    #           node_load1{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
-    #         /
-    #           instance:node_num_cpu:sum{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
-    #         )
-    #       record: instance:node_load1_per_cpu:ratio
-    #     - expr: |
-    #         1 - (
-    #           node_memory_MemAvailable_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
-    #         /
-    #           node_memory_MemTotal_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
-    #         )
-    #       record: instance:node_memory_utilisation:ratio
     - name: Resource utilization
       rules:
         - alert: MemoryUtilizationLow
           annotations:
-            message: Node {{ $labels.node }} is using less than 20% of its allocatable memory capacity
+            message: Node {{ `{{ $labels.node }}` }} is using less than 20% of its allocatable memory capacity
           expr: kube_node_status_allocatable{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"}/kube_node_status_capacity{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"} > 0.8
           for: 20m
           labels:
             severity: low      
         - alert: MemoryUtilizationHigh
           annotations:
-            message: Node {{ $labels.node }} is using more than 80% of its allocatable memory capacity
+            message: Node {{ `{{ $labels.node }}` }} is using more than 80% of its allocatable memory capacity
           expr: kube_node_status_allocatable{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"}/kube_node_status_capacity{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"} < 0.2
           for: 20m
           labels:
@@ -53,8 +25,8 @@ spec:
         - alert: KubePodCrashLooping
           annotations:
             message:
-              Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
-              }}) is restarting {{ printf "%.2f" $value }} times / 5 minutes.
+              Pod {{ `{{ $labels.namespace }}` }}/{{ `{{ $labels.pod }}` }} ({{ `{{ $labels.container
+              }}` }}) is restarting {{ `{{ printf "%.2f" $value }}` }} times / 5 minutes.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runboomd#alert-name-kubepodcrashlooping
           expr: |
             rate(kube_pod_container_status_restarts_total{job="kube-state-metrics", instance_id="{{ .Values.runtime.instanceID }}"}[15m]) * 60 * 5 > 0
@@ -64,7 +36,7 @@ spec:
         - alert: KubePodNotReady
           annotations:
             message:
-              Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready
+              Pod {{ `{{$labels.namespace }}` }}/{{ `{{$labels.pod }}` }} has been in a non-ready
               state for longer than 15 minutes.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runboomd#alert-name-kubepodnotready
           expr: |
@@ -77,9 +49,9 @@ spec:
         - alert: KubePersistentVolumeFillingUp
           annotations:
             message:
-              The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
-              }} in Namespace {{ $labels.namespace }} is only {{ $value | humanizePercentage
-              }} free.
+              The PersistentVolume claimed by {{ `{{$labels.persistentvolumeclaim
+              }}` }} in Namespace {{ `{{$labels.namespace }}` }} is only {{ `{{$value | humanizePercentage
+              }}` }} free.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefillingup
           expr: |
             kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics", instance_id="{{ .Values.runtime.instanceID }}"}
@@ -92,9 +64,9 @@ spec:
         - alert: KubePersistentVolumeFillingUp
           annotations:
             message:
-              Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim
-              }} in Namespace {{ $labels.namespace }} is expected to fill up within four
-              days. Currently {{ $value | humanizePercentage }} is available.
+              Based on recent sampling, the PersistentVolume claimed by {{ `{{$labels.persistentvolumeclaim
+              }}` }} in Namespace {{ `{{ $labels.namespace }}` }} is expected to fill up within four
+              days. Currently {{ `{{ $value | humanizePercentage }}` }} is available.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefillingup
           expr: |
             (
@@ -110,8 +82,8 @@ spec:
         - alert: KubePersistentVolumeErrors
           annotations:
             message:
-              The persistent volume {{ $labels.persistentvolume }} has status {{
-              $labels.phase }}.
+              The persistent volume {{ `{{ $labels.persistentvolume }}` }} has status {{ `{{ 
+              $labels.phase }}` }}.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumeerrors
           expr: |
             kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics", instance_id="{{ .Values.runtime.instanceID }}"} > 0
@@ -179,8 +151,8 @@ spec:
         - alert: KubeQuotaExceeded
           annotations:
             message:
-              Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage
-              }} of its {{ $labels.resource }} quota.
+              Namespace {{ `{{$labels.namespace }}` }} is using {{ `{{$value | humanizePercentage
+              }}` }} of its {{ `{{$labels.resource }}` }} quota.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runboomd#alert-name-kubequotaexceeded
           expr: |
             kube_resourcequota{job="kube-state-metrics", type="used",instance_id="{{ .Values.runtime.instanceID }}"}
@@ -193,9 +165,9 @@ spec:
         - alert: CPUThrottlingHigh
           annotations:
             message:
-              "{{ $value | humanizePercentage }} throttling of CPU in namespace
-              {{ $labels.namespace }} for container {{ $labels.container }} in pod {{
-              $labels.pod }}."
+              "{{ `{{$value | humanizePercentage }}` }} throttling of CPU in namespace
+              {{ `{{ $labels.namespace }}` }} for container {{ `{{$labels.container }}` }} in pod {{ `{{
+              $labels.pod }}` }}."
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runboomd#alert-name-cputhrottlinghigh
           expr: |
             sum(increase(container_cpu_cfs_throttled_periods_total{container!="", instance_id="{{ .Values.runtime.instanceID }}"}[5m])) by (container, pod, namespace)
@@ -210,8 +182,8 @@ spec:
         - alert: KubeAPILatencyHigh
           annotations:
             message:
-              The API server has an abnormal latency of {{ $value }} seconds for
-              {{ $labels.verb }} {{ $labels.resource }}.
+              The API server has an abnormal latency of {{ `{{ $value }}` }} seconds for
+              {{ `{{ $labels.verb }}` }} {{ `{{ $labels.resource }}` }}.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbookmd#alert-name-kubeapilatencyhigh
           expr: |
             (
@@ -235,9 +207,9 @@ spec:
         - alert: KubeAPIErrorsHigh
           annotations:
             message:
-              API server is returning errors for {{ $value | humanizePercentage
-              }} of requests for {{ $labels.verb }} {{ $labels.resource }} {{ $labels.subresource
-              }}.
+              API server is returning errors for {{ `{{ $value | humanizePercentage
+              }}` }} of requests for {{ `{{ $labels.verb }}` }} {{ `{{ $labels.resource }}` }} {{ `{{ $labels.subresource
+              }}` }}.
             runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbookmd#alert-name-kubeapierrorshigh
           expr: |
             sum(rate(apiserver_request_total{job="apiserver",code=~"5..",instance_id="{{ .Values.runtime.instanceID }}"}[5m])) by (resource,subresource,verb)
