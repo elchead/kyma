@@ -32,6 +32,22 @@ spec:
               node_memory_MemTotal_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
             )
           record: instance:node_memory_utilisation:ratio
+    - name: Resource utilization
+      rules:
+        - alert: MemoryUtilizationLow
+          annotations:
+            message: Node {{ $labels.node }} is using less than 20% of its allocatable memory capacity
+          expr: kube_node_status_allocatable{resource="memory"}/kube_node_status_capacity{resource="memory"} > 0.8
+          for: 20m
+          labels:
+            severity: low      
+        - alert: MemoryUtilizationHigh
+          annotations:
+            message: Node {{ $labels.node }} is using more than 80% of its allocatable memory capacity
+          expr: kube_node_status_allocatable{resource="memory"}/kube_node_status_capacity{resource="memory"} < 0.2
+          for: 20m
+          labels:
+            severity: low
     - name: {{ include "runtime-monitoring-integration.fullname" . }}-kubernetes-apps
       rules:
         - alert: KubePodCrashLooping
