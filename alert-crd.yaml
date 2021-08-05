@@ -4,34 +4,34 @@ metadata:
   name: {{ include "runtime-monitoring-integration.fullname" . }}-example
 spec:
   groups:
-    - name: {{ include "runtime-monitoring-integration.fullname" . }}-node-exporter.rules
-      rules:
-        - expr: |
-            count without (cpu) (
-              count without (mode) (
-                node_cpu_seconds_total{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
-              )
-            )
-          record: instance:node_num_cpu:sum
-        - expr: |
-            1 - avg without (cpu, mode) (
-              rate(node_cpu_seconds_total{job="node-exporter", mode="idle", instance_id="{{ .Values.runtime.instanceID }}"}[1m])
-            )
-          record: instance:node_cpu_utilisation:rate1m
-        - expr: |
-            (
-              node_load1{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
-            /
-              instance:node_num_cpu:sum{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
-            )
-          record: instance:node_load1_per_cpu:ratio
-        - expr: |
-            1 - (
-              node_memory_MemAvailable_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
-            /
-              node_memory_MemTotal_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
-            )
-          record: instance:node_memory_utilisation:ratio
+    # - name: {{ include "runtime-monitoring-integration.fullname" . }}-node-exporter.rules
+    #   rules:
+    #     - expr: |
+    #         count without (cpu) (
+    #           count without (mode) (
+    #             node_cpu_seconds_total{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
+    #           )
+    #         )
+    #       record: instance:node_num_cpu:sum
+    #     - expr: |
+    #         1 - avg without (cpu, mode) (
+    #           rate(node_cpu_seconds_total{job="node-exporter", mode="idle", instance_id="{{ .Values.runtime.instanceID }}"}[1m])
+    #         )
+    #       record: instance:node_cpu_utilisation:rate1m
+    #     - expr: |
+    #         (
+    #           node_load1{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
+    #         /
+    #           instance:node_num_cpu:sum{job="node-exporter", instance_id="{{ .Values.runtime.instanceID }}"}
+    #         )
+    #       record: instance:node_load1_per_cpu:ratio
+    #     - expr: |
+    #         1 - (
+    #           node_memory_MemAvailable_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
+    #         /
+    #           node_memory_MemTotal_bytes{job="node-exporter",instance_id="{{ .Values.runtime.instanceID }}"}
+    #         )
+    #       record: instance:node_memory_utilisation:ratio
     - name: Resource utilization
       rules:
         - alert: MemoryUtilizationLow
