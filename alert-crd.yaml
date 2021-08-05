@@ -37,14 +37,14 @@ spec:
         - alert: MemoryUtilizationLow
           annotations:
             message: Node {{ $labels.node }} is using less than 20% of its allocatable memory capacity
-          expr: kube_node_status_allocatable{resource="memory"}/kube_node_status_capacity{resource="memory"} > 0.8
+          expr: kube_node_status_allocatable{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"}/kube_node_status_capacity{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"} > 0.8
           for: 20m
           labels:
             severity: low      
         - alert: MemoryUtilizationHigh
           annotations:
             message: Node {{ $labels.node }} is using more than 80% of its allocatable memory capacity
-          expr: kube_node_status_allocatable{resource="memory"}/kube_node_status_capacity{resource="memory"} < 0.2
+          expr: kube_node_status_allocatable{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"}/kube_node_status_capacity{resource="memory", instance_id="{{ .Values.runtime.instanceID }}"} < 0.2
           for: 20m
           labels:
             severity: low
